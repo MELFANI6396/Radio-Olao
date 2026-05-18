@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+  <meta charset="UTF-8">
+  <title>AI Radio 24/7</title>
+  <style>
+    body {
+      background: #0b0f1a;
+      color: white;
+      font-family: Arial;
+      text-align: center;
+      padding: 40px;
+    }
+    h1 { color: #4df; }
+    button {
+      padding: 10px 20px;
+      margin-top: 20px;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+
+<h1>🎧 Twoje AI Radio 24/7</h1>
+
+<p>Status: <span id="status">STOP</span></p>
+
+<button onclick="startRadio()">▶ START RADIA</button>
+
+<audio id="music" loop>
+  <!-- Możesz tu podmienić stream -->
+  <source src="https://streams.ilovemusic.de/iloveradio1.mp3" type="audio/mpeg">
+</audio>
+
+<script>
+let radioOn = false;
+
+function speak(text) {
+  const msg = new SpeechSynthesisUtterance(text);
+  msg.lang = "pl-PL";
+  speechSynthesis.speak(msg);
+}
+
+async function getWeather() {
+  try {
+    const res = await fetch("https://api.openweathermap.org/data/2.5/weather?q=Warsaw&appid=YOUR_API_KEY&units=metric");
+    const data = await res.json();
+    return `Temperatura ${Math.round(data.main.temp)} stopni Celsjusza`;
+  } catch {
+    return "Brak danych pogodowych";
+  }
+}
+
+async function getNews() {
+  try {
+    const res = await fetch("https://api.rss2json.com/v1/api.json?rss_url=https://www.reutersagency.com/feed/?best-topics=business-finance");
+    const data = await res.json();
+    return data.items[0].title;
+  } catch {
+    return "Brak nowych wiadomości";
+  }
+}
+
+function startRadio() {
+  if (radioOn) return;
+  radioOn = true;
+
+  document.getElementById("status").innerText = "LIVE";
+  document.getElementById("music").play();
+
+  speak("Witamy w Twoim AI Radiu 24 godziny na dobę");
+
+  setInterval(async () => {
+    const news = await getNews();
+    const weather = await getWeather();
+
+    document.getElementById("music").volume = 0.2;
+
+    speak("Oto wiadomości: " + news);
+
+    setTimeout(() => {
+      speak("Aktualna pogoda: " + weather);
+    }, 7000);
+
+    setTimeout(() => {
+      document.getElementById("music").volume = 1.0;
+    }, 15000);
+
+  }, 60000);
+}
+</script>
+
+</body>
+</html>
